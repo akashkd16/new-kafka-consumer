@@ -3,6 +3,7 @@ package com.stackroute.springbootkafkaconsumer.config;
 
 import com.stackroute.springbootkafkaconsumer.model.User;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.common.serialization.BytesDeserializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
 import org.springframework.context.annotation.Bean;
@@ -11,7 +12,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.converter.StringJsonMessageConverter;
 
 
 
@@ -27,12 +28,10 @@ public class KafkaConfiguration {
     public ConsumerFactory<String, String> consumerFactory() {
 
         Map<String, Object> config =new HashMap<>();
-
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,"127.0.0.1:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "group_id");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "group_id1");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,StringDeserializer.class);
-
         return new DefaultKafkaConsumerFactory<>(config);
 
     }
@@ -50,17 +49,23 @@ public class KafkaConfiguration {
         Map<String, Object> config =new HashMap<>();
 
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,"127.0.0.1:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "group_json");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "group_id2");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+//        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, BytesDeserializer.class);
 
-        return new DefaultKafkaConsumerFactory<>(config,new StringDeserializer(),new JsonDeserializer<>(User.class));
+        return new DefaultKafkaConsumerFactory<>(config);
     }
 
+//    @Bean
+//    public StringJsonMessageConverter jsonConverter() {
+//        return new StringJsonMessageConverter();
+//    }
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String,User> userKafkaListenerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String,User> factory=new ConcurrentKafkaListenerContainerFactory();
+        ConcurrentKafkaListenerContainerFactory<String,User> factory=new ConcurrentKafkaListenerContainerFactory<String,User>();
         factory.setConsumerFactory(userConsumerFactory());
+        factory.setMessageConverter(new StringJsonMessageConverter());
         return factory;
     }
 }
